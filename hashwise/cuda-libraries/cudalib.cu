@@ -6,6 +6,15 @@
 
 
 extern "C" {
+    __declspec(dllexport) char* sha256_bulk(char* chars, int len_chars, int length){
+
+        // To be implemented
+
+        return "NoHashFound";
+    }
+
+
+
     __declspec(dllexport) int cuda_enabled(){
         int ph = -1;
         int* res = &ph;
@@ -73,23 +82,4 @@ extern "C" {
             std::cout << "Shared memory per block: " << deviceProp.sharedMemPerBlock << "\n";
         }
     }
-}
-
-
-
-
-int main() {
-    int deviceCount;
-    cudaGetDeviceCount(&deviceCount);
-    for (int i = 0; i < deviceCount; ++i) {
-        cudaDeviceProp deviceProp;
-        cudaGetDeviceProperties(&deviceProp, i);
-        std::cout << "Device " << i << " has compute capability " << deviceProp.major << "." << deviceProp.minor << "\n";
-        std::cout << "Device name: " << deviceProp.name << "\n";
-        std::cout << "Maximum number of threads per block: " << deviceProp.maxThreadsPerBlock << "\n";
-        std::cout << "Number of multiprocessors: " << deviceProp.multiProcessorCount << "\n";
-        std::cout << "Total global memory: " << deviceProp.totalGlobalMem << "\n";
-        std::cout << "Shared memory per block: " << deviceProp.sharedMemPerBlock << "\n";
-    }
-    return 0;
 }
