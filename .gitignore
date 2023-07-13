@@ -1,0 +1,3 @@
+*.ipynb
+hashwise/*ipynb
+hashwise/__pycache__
