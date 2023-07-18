@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+// #include "gen-cuda-func.cu"
 
 #define uchar unsigned char
 #define uint unsigned int
@@ -25,9 +26,9 @@ typedef struct {
 	unsigned int datalen;
 	unsigned int bitlen[2];
 	unsigned int state[8];
-} SHA256_CTX_DEVICE;
+} SHA256_CTX;
 
-__device__ void SHA256Transform_device(SHA256_CTX_DEVICE *ctx, unsigned char data[]) {
+__device__ void SHA256Transform(SHA256_CTX *ctx, unsigned char data[]) {
 	const unsigned int k[64] = {
 		0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
 		0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
@@ -77,7 +78,7 @@ __device__ void SHA256Transform_device(SHA256_CTX_DEVICE *ctx, unsigned char dat
 	ctx->state[7] += h;
 }
 
-__device__ void SHA256Init_device(SHA256_CTX_DEVICE *ctx) {
+__device__ void SHA256Init(SHA256_CTX *ctx) {
 	ctx->datalen = 0;
 	ctx->bitlen[0] = 0;
 	ctx->bitlen[1] = 0;
@@ -91,19 +92,19 @@ __device__ void SHA256Init_device(SHA256_CTX_DEVICE *ctx) {
 	ctx->state[7] = 0x5be0cd19;
 }
 
-__device__ void SHA256Update_device(SHA256_CTX_DEVICE *ctx, unsigned char data[], unsigned int len) {
+__device__ void SHA256Update(SHA256_CTX *ctx, unsigned char data[], unsigned int len) {
 	for (unsigned int i = 0; i < len; ++i) {
 		ctx->data[ctx->datalen] = data[i];
 		ctx->datalen++;
 		if (ctx->datalen == 64) {
-			SHA256Transform_device(ctx, ctx->data);
+			SHA256Transform(ctx, ctx->data);
 			DBL_INT_ADD(ctx->bitlen[0], ctx->bitlen[1], 512);
 			ctx->datalen = 0;
 		}
 	}
 }
 
-__device__ void SHA256Final_device(SHA256_CTX_DEVICE *ctx, unsigned char hash[]) {
+__device__ void SHA256Final(SHA256_CTX *ctx, unsigned char hash[]) {
 	unsigned int i = ctx->datalen;
 
 	if (ctx->datalen < 56) {
@@ -115,7 +116,7 @@ __device__ void SHA256Final_device(SHA256_CTX_DEVICE *ctx, unsigned char hash[])
 		ctx->data[i++] = 0x80;
 		while (i < 64)
 			ctx->data[i++] = 0x00;
-		SHA256Transform_device(ctx, ctx->data);
+		SHA256Transform(ctx, ctx->data);
 		memset(ctx->data, 0, 56);
 	}
 
@@ -128,7 +129,7 @@ __device__ void SHA256Final_device(SHA256_CTX_DEVICE *ctx, unsigned char hash[])
 	ctx->data[58] = ctx->bitlen[1] >> 8;
 	ctx->data[57] = ctx->bitlen[1] >> 16;
 	ctx->data[56] = ctx->bitlen[1] >> 24;
-	SHA256Transform_device(ctx, ctx->data);
+	SHA256Transform(ctx, ctx->data);
 
 	for (i = 0; i < 4; ++i) {
 		hash[i] = (ctx->state[0] >> (24 - i * 8)) & 0x000000ff;
@@ -142,48 +143,8 @@ __device__ void SHA256Final_device(SHA256_CTX_DEVICE *ctx, unsigned char hash[])
 	}
 }
 
-__device__ void cudaStrcpy(char* dst, const char* src, int length) {
-	if (length == NULL){
-		while ((*dst++ = *src++) != '\0');
-	}
-	else{
-		for (unsigned int i = 0; i < length; i++){dst[i] = src[i];}
-	}
-}
-
-__device__ void cudaStrcat(char* dst, const char* src) {
-    while (*dst) dst++; // find end of dst
-    while ((*dst++ = *src++)); // copy src to end of dst
-}
-
-__device__ void cudaSprintf(char* dst, unsigned char value) {
-    const char hex_map[] = "0123456789abcdef";
-    dst[0] = hex_map[value >> 4]; // upper nibble
-    dst[1] = hex_map[value & 0x0F]; // lower nibble
-    dst[2] = '\0'; // null-terminate the string
-}
-
-__device__ int cudaStrcmp(const char *str1, const char *str2, unsigned int length) {
-	if (length == 0){
-		while (*str1 && (*str1 == *str2)) {
-			str1++;
-			str2++;
-		}
-		return *(unsigned char *) str1 - *(unsigned char *) str2;
-	}
-	else{
-		for(unsigned int i = 0; i < length; i++){
-			if(*str1 != *str2){
-				return *(unsigned char *) str1 - *(unsigned char *) str2;
-			}
-			str1++;
-			str2++;
-		}
-		return 0;
-	}
-}
-__device__ void SHA256_device(char* arg, int length, char* res) {
-	SHA256_CTX_DEVICE ctx;
+__device__ void SHA256(const char* arg, int length, char* res) {
+	SHA256_CTX ctx;
 	unsigned char hash[32];
 	char* hashStr = (char*) malloc(sizeof(char) * 65);
 	if (!hashStr) {
@@ -191,9 +152,9 @@ __device__ void SHA256_device(char* arg, int length, char* res) {
 	}
 	cudaStrcpy(hashStr, "", NULL);
 
-	SHA256Init_device(&ctx);
-	SHA256Update_device(&ctx, (unsigned char*) arg, length);
-	SHA256Final_device(&ctx, hash);
+	SHA256Init(&ctx);
+	SHA256Update(&ctx, (unsigned char*) arg, length);
+	SHA256Final(&ctx, hash);
 
 	char s[3];
 	for (int i = 0; i < 32; i++) {

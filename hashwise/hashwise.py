@@ -15,8 +15,12 @@ except FileNotFoundError:
     raise DependencyNotFoundError(f"Cannot load cuda dependencies. Double check that {_cudalib_path} exists.")
 
 # Declare cuda function argument and return types
-_cudalib.sha256_brute_force.argtypes = [_ctypes.c_int, _ctypes.c_char_p, _ctypes.c_int, _ctypes.c_char_p]
+_cudalib.sha256_brute_force.argtypes = [_ctypes.c_int, _ctypes.c_char_p, _ctypes.c_int, _ctypes.c_char_p, _ctypes.c_int, _ctypes.c_int]
 _cudalib.sha256_brute_force.restype = _ctypes.c_char_p
+_cudalib.md5_brute_force.argtypes = [_ctypes.c_int, _ctypes.c_char_p, _ctypes.c_int, _ctypes.c_char_p, _ctypes.c_int, _ctypes.c_int]
+_cudalib.md5_brute_force.restype = _ctypes.c_char_p
+_cudalib.sha1_brute_force.argtypes = [_ctypes.c_int, _ctypes.c_char_p, _ctypes.c_int, _ctypes.c_char_p, _ctypes.c_int, _ctypes.c_int]
+_cudalib.sha1_brute_force.restype = _ctypes.c_char_p
 
 def blake2b(payload:bytes):
     if not isinstance(payload, bytes):
@@ -78,24 +82,24 @@ def sha3_512(payload:bytes):
         raise TypeError("Argument 'payload' must be of type 'bytes'")
     return _hashlib.sha3_512(payload).hexdigest()
 
-def shake_128(payload:bytes):
+def shake_128(payload:bytes, length):
     if not isinstance(payload, bytes):
         raise TypeError("Argument 'payload' must be of type 'bytes'")
-    return _hashlib.shake_128(payload).hexdigest()
+    return _hashlib.shake_128(payload).hexdigest(length)
 
-def shake_256(payload:bytes):
+def shake_256(payload:bytes, length):
     if not isinstance(payload, bytes):
         raise TypeError("Argument 'payload' must be of type 'bytes'")
-    return _hashlib.shake_256(payload).hexdigest()
+    return _hashlib.shake_256(payload).hexdigest(length)
 
-def brute_force_hash(hash_algorithm, possible_elements, target:str, len_permutation:int=None, string_encoding:str='utf-8', use_gpu=None, show_progress_bar=False):
-    if hash_algorithm not in all_algorithms:
+def brute_force_hash(hash_algorithm, possible_elements, target:str, len_permutation:int=None, string_encoding:str='utf-8', use_gpu=None, numBlocks=32, numThreadsPerBlock=32, show_progress_bar=False):
+    if hash_algorithm not in _hash_algo_info.keys():
         raise ValueError("Argument 'hash_algorithm' must be a hashing algorithm from hashwise library. See 'hashwise.all_algorithms' for complete list.")
     
     if not isinstance(target, str):
         raise TypeError("Argument 'target' must be a string.")
-    elif len(target) != hash_algo_res_length[hash_algorithm]:
-        raise ValueError("Argument 'target' mush be a hash (in base 16).")
+    elif len(target) != _hash_algo_info[hash_algorithm]['hash_len']:
+        raise ValueError("Argument 'target' mush be a hexadecimal hash of length {} for hash algorithm {}".format(_hash_algo_info[hash_algorithm]['hash_len'], _hash_algo_info[hash_algorithm]['name']) )
 
     # checks and formats the possible_elements argument
     gen_type = str
@@ -138,7 +142,16 @@ def brute_force_hash(hash_algorithm, possible_elements, target:str, len_permutat
         print("Warning: progress bar cannot be shown when computing on graphics card.")
 
     if use_gpu:
-        res:bytes = _cudalib.sha256_brute_force(len_permutation, possible_elements.encode('utf-8'), len(possible_elements), target.encode('utf-8'))
+        if _hash_algo_info[hash_algorithm]['gpu_func'] is None:
+            raise NotImplementedError("GPU dependencies for {} have yet to be implemented.".format(_hash_algo_info[hash_algorithm]['name']))
+        res:bytes = _hash_algo_info[hash_algorithm]['gpu_func'](
+            len_permutation, 
+            possible_elements.encode('utf-8'), 
+            len(possible_elements), 
+            target.encode('utf-8'),
+            numBlocks,
+            numThreadsPerBlock
+        )
         res = res.decode(string_encoding)
         if all([i=='z' for i in res]):
             return None
@@ -150,7 +163,7 @@ def brute_force_hash(hash_algorithm, possible_elements, target:str, len_permutat
 
         if gen_type == str:
             for i in permutation_generator:
-                byte_obj = bytes(i, encoding=string_encoding)
+                byte_obj = i.encode(string_encoding)
                 if hash_algorithm(byte_obj) == target:
                     return i
         elif gen_type == int:
@@ -162,7 +175,7 @@ def brute_force_hash(hash_algorithm, possible_elements, target:str, len_permutat
     return None
 
 def brute_force_time_estimate(hash_algorithm, possible_elements, length:int=None, string_encoding:str='utf-8', units='seconds', num_trials=None):
-    if hash_algorithm not in all_algorithms:
+    if hash_algorithm not in _hash_algo_info.keys():
         raise ValueError("Argument 'hash_algorithm' must be a hashing algorithm from hashwise library. See 'hashwise.all_algorithms' for complete list.")
     
     unit_lst = {
@@ -228,38 +241,21 @@ def brute_force_time_estimate(hash_algorithm, possible_elements, length:int=None
 
     return (((end-start) / num_trials) * (permutation_length) if loop_broken else (end-start)) / modifier
 
-all_algorithms = [
-    blake2b,
-    blake2s,
-    md5,
-    sha1,
-    sha224,
-    sha256,
-    sha384,
-    sha512,
-    sha3_224,
-    sha3_256,
-    sha3_384,
-    sha3_512,
-    shake_128,
-    shake_256,
-]
-
-hash_algo_res_length = {
-    blake2b: 0,
-    blake2s: 0,
-    md5: 0,
-    sha1: 0,
-    sha224: 0,
-    sha256: 64,
-    sha384: 0,
-    sha512: 0,
-    sha3_224: 0,
-    sha3_256: 0,
-    sha3_384: 0,
-    sha3_512: 0,
-    shake_128: 0,
-    shake_256: 0,
+_hash_algo_info = {
+    blake2b: {'name':'blake2b', 'hash_len':128, "gpu_func":None},
+    blake2s: {'name':'blake2s', 'hash_len':64, "gpu_func":None},
+    md5: {'name':'md5', 'hash_len':32, "gpu_func":_cudalib.md5_brute_force},
+    sha1: {'name':'sha1', 'hash_len':40, "gpu_func":_cudalib.sha1_brute_force},
+    sha224: {'name':'sha224', 'hash_len':56, "gpu_func":None},
+    sha256: {'name':'sha256', 'hash_len':64, "gpu_func":_cudalib.sha256_brute_force},
+    sha384: {'name':'sha384', 'hash_len':96, "gpu_func":None},
+    sha512: {'name':'sha512', 'hash_len':128, "gpu_func":None},
+    sha3_224: {'name':'sha3_224', 'hash_len':56, "gpu_func":None},
+    sha3_256: {'name':'sha3_256', 'hash_len':64, "gpu_func":None},
+    sha3_384: {'name':'sha3_384', 'hash_len':96, "gpu_func":None},
+    sha3_512: {'name':'sha3_512', 'hash_len':128, "gpu_func":None},
+    shake_128: {'name':'shake_128', 'hash_len':128, "gpu_func":None},
+    shake_256: {'name':'shake_256', 'hash_len':256, "gpu_func":None},
 }
 
 def __perm_gen_str(chars, length):
