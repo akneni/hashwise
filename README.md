@@ -58,25 +58,33 @@ These exceptions are raised when there are issues with dependencies, GPU access,
 
 In order to see if a CUDA enables GPU is available, call the following:
 
-```pyhton
+```python
 import hashwise
 
-# Returns a list of all the GPU devices avilalbe. An empty list means that no GPUs were found.
+# Returns a list of all the GPU devices available. An empty list means that no GPUs were found.
 hashwise.DeviceStatus.devices()
 
-# Alternatively, this method will return true if a GPU is avilable and false if otherwise.
+# Alternatively, this method will return true if a GPU is available and false if otherwise.
 hashwise.DeviceStatus.device_available()
 ```
 
 To use the library, import the required functions and call them with the appropriate arguments. For example:
 
 ```python
-import hashwise
-
 hashed_value = hashwise.sha256(b'hello world')
 original_value = hashwise.brute_force_hash(hashwise.sha256, 'abcdefghijklmnopqrstuvwxyz', hashed_value)
 ```
 This will hash the string 'hello world' using the SHA256 algorithm, and then attempt to find the original value of the hashed string by brute force.
 
-
+Additionally, we can specify the following parameters to enable GPU acceleration specify the number of blocks and threads to be allocated on the GPU. If these numbers aren't defined, an estimate of the optimal configuration will be used.
+```python
+original_value = hashwise.brute_force_hash(
+    hash_algorithm=hashwise.sha256,
+    possible_elements="abcdefghijklmnopqrstuvwxyz",
+    target=hashwise.sha256(b'hello world'),
+    use_gpu=True,
+    numBlocks=512,
+    numThreadsPerBlock=64
+)
+```
 
