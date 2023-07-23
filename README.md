@@ -6,7 +6,6 @@ This library provides a set of functions for hashing and brute forcing hashes us
 
 The library depends on the following Python packages:
 
-- `device_status`
 - `ctypes`
 - `time`
 - `hashlib`
@@ -57,6 +56,18 @@ These exceptions are raised when there are issues with dependencies, GPU access,
 
 ## Usage
 
+In order to see if a CUDA enables GPU is available, call the following:
+
+```pyhton
+import hashwise
+
+# Returns a list of all the GPU devices avilalbe. An empty list means that no GPUs were found.
+hashwise.DeviceStatus.devices()
+
+# Alternatively, this method will return true if a GPU is avilable and false if otherwise.
+hashwise.DeviceStatus.device_available()
+```
+
 To use the library, import the required functions and call them with the appropriate arguments. For example:
 
 ```python
@@ -66,5 +77,6 @@ hashed_value = hashwise.sha256(b'hello world')
 original_value = hashwise.brute_force_hash(hashwise.sha256, 'abcdefghijklmnopqrstuvwxyz', hashed_value)
 ```
 This will hash the string 'hello world' using the SHA256 algorithm, and then attempt to find the original value of the hashed string by brute force.
+
 
 
