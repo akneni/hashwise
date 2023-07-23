@@ -1,7 +1,8 @@
 #include <stdlib.h>
-#include <cuda_runtime.h>
 #include <stdio.h>
 #include <string.h>
+#include <cuda_runtime.h>
+
 
 #include "gen-cuda-func.cu"
 #include "sha256.cu"
@@ -132,7 +133,7 @@ __global__ void global_sha256_brute_force(int* len_chars_ptr, char* elements, in
 	if (DEBUG_MODE >= 2){
 		printf("Finished updating string for thread <%d>\n", threadID);
 	}
-    int update_checker; // TEMP
+    int update_checker;
     char* checker = (char*) malloc(65 * sizeof(char));
 	checker[64] = '\0';
     while (start < end){
