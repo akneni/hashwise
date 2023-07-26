@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='hashwise',
-    version='0.0.2',
+    version='0.0.3',
     description='A secure python library for GPU accelerated hashing.',
     long_description=long_description,
     long_description_content_type='text/markdown', 
@@ -15,9 +15,11 @@ setup(
     packages=find_packages(),
     package_data={
         '': ['*.dll'],
-        'hashwise': ['c-libraries/*.dll', 'cuda-libraries/*.dll'],
+        'hashwise': ['c-libraries/*.dll', 'cuda-libraries/*.dll', 'device-info/*.dll'],
     },
     author_email='akneni@gmail.com',
     install_requires=[
+        'tqdm',
+        'pathlib'
     ],
 )

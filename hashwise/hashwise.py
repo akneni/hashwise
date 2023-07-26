@@ -1,5 +1,5 @@
-from device_status import DeviceStatus
-from exceptions import *
+from .device_status import DeviceStatus
+from .exceptions import *
 import ctypes as _ctypes
 from time import perf_counter as _perf_counter
 import hashlib as _hashlib
