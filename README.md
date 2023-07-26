@@ -2,21 +2,17 @@
 
 This library provides a set of functions for hashing and brute forcing hashes using various algorithms. It leverages CUDA for GPU computation to speed up the process.
 
-## Instilation
+## Installation
 `pip install hashwise`
 
 ## Dependencies
 
-The library depends on the following Python packages:
+The library depends on the following third-party Python packages:
 
-- `ctypes`
-- `time`
-- `hashlib`
 - `tqdm`
-- `os`
 - `pathlib`
 
-It also requires CUDA libraries for GPU computation. The required DLL is expected to be located in the "cuda-libraries" directory relative to the location of the library file.
+It also requires CUDA libraries for GPU computation. The required Dynamic-Link Library (DLL) is expected to be located in the "cuda-libraries" directory relative to the location of the library file.
 
 ## Functions
 
@@ -37,7 +33,7 @@ The library provides the following functions:
 - `shake_128(payload:bytes, length:int)`
 - `shake_256(payload:bytes, length:int)`
 
-These functions take a byte string as input and return the hashed value of the input.
+These functions take a byte as input and return the hashed value of the input.
 
 The library also provides the following functions for brute forcing hashes:
 
@@ -59,7 +55,7 @@ These exceptions are raised when there are issues with dependencies, GPU access,
 
 ## Usage
 
-In order to see if a CUDA enables GPU is available, call the following:
+In order to see if a CUDA-enabled GPU is available, call the following:
 
 ```python
 import hashwise
@@ -79,7 +75,7 @@ original_value = hashwise.brute_force_hash(hashwise.sha256, 'abcdefghijklmnopqrs
 ```
 This will hash the string 'hello world' using the SHA256 algorithm, and then attempt to find the original value of the hashed string by brute force.
 
-Additionally, we can specify the following parameters to enable GPU acceleration specify the number of blocks and threads to be allocated on the GPU. If these numbers aren't defined, an estimate of the optimal configuration will be used.
+Additionally, we can specify the following parameters to enable GPU acceleration and specify the number of blocks and threads to be allocated. If these numbers aren't defined, an estimate of the optimal configuration will be used.
 ```python
 original_value = hashwise.brute_force_hash(
     hash_algorithm=hashwise.sha256,
