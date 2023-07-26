@@ -343,8 +343,8 @@ def brute_force_hash(hash_algorithm, possible_elements, target:str, len_permutat
             possible_elements.encode('utf-8'), 
             len(possible_elements), 
             target.encode('utf-8'),
-            numBlocks,
-            numThreadsPerBlock
+            min(numBlocks, 512),
+            min(numThreadsPerBlock, 32)
         )
         res = res.decode(string_encoding)
         if all([i=='z' for i in res]):

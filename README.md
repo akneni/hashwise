@@ -2,6 +2,9 @@
 
 This library provides a set of functions for hashing and brute forcing hashes using various algorithms. It leverages CUDA for GPU computation to speed up the process.
 
+## Instilation
+`pip install hashwise`
+
 ## Dependencies
 
 The library depends on the following Python packages:

@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
     name='hashwise',
     version='0.0.1',
-    description='A secure python library for parallelizing hashing algorithms across a graphics card.',
+    description='A secure python library for GPU accelerated hashing.',
     long_description=long_description,
     long_description_content_type='text/markdown', 
     author='Anish Kanthamneni',
