@@ -1,8 +1,18 @@
 # Hashwise Python Library
 
 This library provides a set of functions for hashing and brute forcing hashes using various algorithms. It leverages CUDA for GPU computation to speed up the process.
+For more information, check out the [Hashwise Python Library on GitHub](https://github.com/yourusername/hashwise) or.
+
+## Source Code
+
+The source code for this project is available on GitHub. You can access it [here](https://github.com/akneni/hashwise).
+
+## PyPi Package
+
+The Hashwise library is also available as a package on PyPi. You can view it [here](https://pypi.org/project/hashwise/).
 
 ## Installation
+
 `pip install hashwise`
 
 ## Dependencies
