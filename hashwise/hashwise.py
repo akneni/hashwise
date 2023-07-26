@@ -368,7 +368,7 @@ def brute_force_hash(hash_algorithm, possible_elements, target:str, len_permutat
             
     return None
 
-def brute_force_time_estimate(hash_algorithm, possible_elements, length:int=None, string_encoding:str='utf-8', units='seconds', num_trials=None):
+def brute_force_time_estimate(hash_algorithm, possible_elements, len_permutation:int=None, string_encoding:str='utf-8', units='seconds', num_trials=None):
     """
     This function estimates the time it would take to brute force a hashed string using a specified hash algorithm and possible elements.
 
@@ -402,9 +402,9 @@ def brute_force_time_estimate(hash_algorithm, possible_elements, length:int=None
     # checks and formats the possible_elements argument
     gen_type = str
     if isinstance(possible_elements, str) or all([isinstance(i, str) for i in possible_elements]):
-        permutation_generator = __perm_gen_str(possible_elements, length)
-        permutation_length = len(possible_elements)**length
-        if length is None:
+        permutation_generator = __perm_gen_str(possible_elements, len_permutation)
+        permutation_length = len(possible_elements)**len_permutation
+        if len_permutation is None:
             raise TypeError("Argument 'length' must be defined when lassing colections of chars to 'possible_elements'")
     elif 1 <= len(possible_elements) <= 3 and all([isinstance(i, (int)) for i in possible_elements]):
         if len(possible_elements) == 1:

@@ -1,4 +1,6 @@
-import ctypes
+import ctypes as _ctypes
+import os as _os
+from pathlib import Path as _Path
 
 class DeviceStatus():
     __status = []
@@ -7,19 +9,20 @@ class DeviceStatus():
 
     @classmethod
     def __init(cls):
-        cls.__initialized = True
-        cls.__device_info_clib = ctypes.cdll.LoadLibrary('./device-info/device-info.dll')
+        device_info_path = _Path(_os.path.dirname(_os.path.realpath(__file__))) / "device-info" / "device-info.dll"
+        cls.__device_info_clib = _ctypes.cdll.LoadLibrary(str(device_info_path))
 
-        cls.__device_info_clib.num_devices.restype = ctypes.c_int
-        cls.__device_info_clib.get_device_compute_capability.restype = ctypes.c_double
-        cls.__device_info_clib.get_device_name.restype = ctypes.c_char_p
-        cls.__device_info_clib.get_num_blocks.restype = ctypes.c_int
-        cls.__device_info_clib.get_max_threads_per_block.restype = ctypes.c_int
+        cls.__device_info_clib.num_devices.restype = _ctypes.c_int
+        cls.__device_info_clib.get_device_compute_capability.restype = _ctypes.c_double
+        cls.__device_info_clib.get_device_name.restype = _ctypes.c_char_p
+        cls.__device_info_clib.get_num_blocks.restype = _ctypes.c_int
+        cls.__device_info_clib.get_max_threads_per_block.restype = _ctypes.c_int
     
+        cls.__initialized = True
         if cls.__device_info_clib.num_devices() <= 0: return 
 
         cls.__status.append({
-            "name": ctypes.string_at(cls.__device_info_clib.get_device_name()).decode('utf-8'),
+            "name": _ctypes.string_at(cls.__device_info_clib.get_device_name()).decode('utf-8'),
             "compute_capability":cls.__device_info_clib.get_device_compute_capability(),
             'num_blocks':cls.__device_info_clib.get_num_blocks(),
             'threads_per_block':cls.__device_info_clib.get_max_threads_per_block(),
