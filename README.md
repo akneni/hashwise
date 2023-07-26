@@ -1,7 +1,6 @@
 # Hashwise Python Library
 
 This library provides a set of functions for hashing and brute forcing hashes using various algorithms. It leverages CUDA for GPU computation to speed up the process.
-For more information, check out the [Hashwise Python Library on GitHub](https://github.com/yourusername/hashwise) or.
 
 ## Source Code
 
