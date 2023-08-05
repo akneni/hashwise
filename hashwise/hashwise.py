@@ -1,5 +1,5 @@
-from .device_status import DeviceStatus
-from .exceptions import *
+from device_status import DeviceStatus
+from exceptions import *
 import ctypes as _ctypes
 from time import perf_counter as _perf_counter
 import hashlib as _hashlib
@@ -346,10 +346,14 @@ def brute_force_hash(hash_algorithm, possible_elements, target:str, len_permutat
             min(numBlocks, 512),
             min(numThreadsPerBlock, 32)
         )
-        res = res.decode(string_encoding)
-        if all([i=='z' for i in res]):
+        try:
+            res = res.decode(string_encoding)
+        except UnicodeDecodeError:
+            UnknownGPUError("An unknown error occured when computing on the GPU. Please set use_gpu=False and we will get all bugs fixed soon!")
+        if res == '':
             return None
-        if len(res) != len_permutation: raise UnknownGPUError("An unknown error occured when computing on the GPU. Please set use_gpu=False and we will get all bugs fixed soon!")
+        if len(res) != len_permutation: 
+            raise UnknownGPUError("An unknown error occured when computing on the GPU. Please set use_gpu=False and we will get all bugs fixed soon!")
         return res
     else:        
         if show_progress_bar:
@@ -405,7 +409,7 @@ def brute_force_time_estimate(hash_algorithm, possible_elements, len_permutation
         permutation_generator = __perm_gen_str(possible_elements, len_permutation)
         permutation_length = len(possible_elements)**len_permutation
         if len_permutation is None:
-            raise TypeError("Argument 'length' must be defined when lassing colections of chars to 'possible_elements'")
+            raise TypeError("Argument 'len_permutation' must be defined when lassing colections of chars to 'possible_elements'")
     elif 1 <= len(possible_elements) <= 3 and all([isinstance(i, (int)) for i in possible_elements]):
         if len(possible_elements) == 1:
             possible_elements = [0, possible_elements[0], 1]

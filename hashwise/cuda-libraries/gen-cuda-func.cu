@@ -20,21 +20,13 @@ __device__ void cudaSprintf(char* dst, unsigned char value) {
 }
 
 __device__ int cudaStrcmp(const char *str1, const char *str2, unsigned int length) {
-	if (length == 0){
-		while (*str1 && (*str1 == *str2)) {
-			str1++;
-			str2++;
+	for (int i = 0; i < length; i++){
+		if (str1[i] > str2[i]){
+			return 1;
 		}
-		return *(unsigned char *) str1 - *(unsigned char *) str2;
-	}
-	else{
-		for(unsigned int i = 0; i < length; i++){
-			if(*str1 != *str2){
-				return *(unsigned char *) str1 - *(unsigned char *) str2;
-			}
-			str1++;
-			str2++;
+		else if (str1[i] < str2[i]){
+			return -1;
 		}
-		return 0;
 	}
+	return 0;
 }
